@@ -3,7 +3,7 @@ import { CacheRepository } from "../../../shared/database/repositories/cache.rep
 import { Return } from "../../../shared/util/return.contract";
 import { UsuarioRepository } from "../../usuario/database/usuario.repository";
 
-interface CreateRecrutadorParams {
+export interface CreateRecrutadorParams {
   nome: string;
   username: string;
   password: string;

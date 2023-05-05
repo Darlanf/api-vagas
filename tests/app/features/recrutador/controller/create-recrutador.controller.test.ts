@@ -6,6 +6,10 @@ import { UsuarioRepository } from "../../../../../src/app/features/usuario/datab
 import { Recrutador } from "../../../../../src/app/models/recrutador.model";
 import { TipoUsuario } from "../../../../../src/app/models/usuario.model";
 import { UsuarioEntity } from "../../../../../src/app/shared/database/entities/usuario.entity";
+import {
+  CreateRecrutadorParams,
+  CreateRecrutadorUsecase,
+} from "../../../../../src/app/features/recrutador/usecases/create-recrutador.usecase";
 
 describe("Create recrutador controller tests", () => {
   beforeAll(async () => {
@@ -14,11 +18,10 @@ describe("Create recrutador controller tests", () => {
   });
 
   afterAll(async () => {
-    // como deletar do banco
-    // await TypeormConnection.connection.manager.delete(
-    //   UsuarioEntity,
-    //   {}
-    // );
+    await TypeormConnection.connection.manager.delete(
+      UsuarioEntity,
+      {}
+    );
     await TypeormConnection.connection.destroy();
     await RedisConnection.connection.quit();
   });
@@ -27,6 +30,13 @@ describe("Create recrutador controller tests", () => {
     jest.clearAllMocks();
     jest.resetAllMocks();
   });
+
+  const clearEntities = async () => {
+    await TypeormConnection.connection.manager.delete(
+      UsuarioEntity,
+      {}
+    );
+  };
 
   const app = createApp();
 
@@ -140,37 +150,37 @@ describe("Create recrutador controller tests", () => {
     expect(result?.id).toBe(res.body.data._id);
   });
 
-  // test("Deveria retornar status 500 se gerar exception", async () => {
-  //   const mockUsuarioRepository = jest.fn();
-  //   jest.mock(
-  //     "../../../../../src/app/features/usuario/database/usuario.repository",
-  //     () => {
-  //       return jest
-  //         .fn()
-  //         .mockImplementation(() => {
-  //           return {
-  //             UsuarioRepository:
-  //               mockUsuarioRepository,
-  //           };
-  //         });
-  //     }
-  //   );
-  //   jest
-  //     .spyOn(
-  //       UsuarioRepository.prototype,
-  //       "create"
-  //     )
-  //     .mockRejectedValue(null);
+  test("Deveria retornar status 500 se gerar exception", async () => {
+    jest
+      .spyOn(
+        UsuarioRepository.prototype,
+        "create"
+      )
+      .mockRejectedValue(null);
 
-  //   const res = await request(app)
-  //     .post("/recrutador")
-  //     .send({
-  //       nome: "any_name",
-  //       username: "any_testeusername11",
-  //       password: "any_password",
-  //       nomeEmpresa: "any_empresa",
-  //       tipo: TipoUsuario.Recrutador,
-  //     })
-  //     .expect(500);
-  // });
+    const body: CreateRecrutadorParams = {
+      nome: "any_name",
+      username: "any_testeusername11",
+      password: "any_password",
+      nomeEmpresa: "any_empresa",
+    };
+
+    jest
+      .spyOn(
+        CreateRecrutadorUsecase.prototype,
+        "execute"
+      )
+      .mockImplementation((body) => {
+        throw new Error("Erro simulado usecase");
+      });
+
+    const res = await request(app)
+      .post("/recrutador")
+      .send(body)
+      .expect(500);
+    expect(res).toHaveProperty(
+      "body.message",
+      "Error: Erro simulado usecase"
+    );
+  });
 });
